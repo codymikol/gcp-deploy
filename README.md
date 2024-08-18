@@ -4,19 +4,19 @@ This action allows you to deploy a directory of static files to a Google Cloud S
 
 Example usage:
 ```yaml
-name: Deploy my super cool project
-  jobs:
-    deploy:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: codymikol/gcp-deploy@v1
-          with:
-            before_run: 'npm run build'
-            dist_directory: './dist'
-            after-run: 'echo "I'd send an email to let you know the build is done, but an echo will have to do ;o"'
-            project_id: ${{ secrets.GCP_PROJECT_ID }}
-            credentials_json: ${{ secrets.GCP_CREDENTIALS }}
-            bucket_name: ${{ secrets.GCP_BUCKET_NAME }}
+name: Deploying my wonderful website
+on:
+  push:
+    branches: [ main ]
+jobs:
+  deploy:
+      uses: codymikol/gcp-deploy/.github/workflows/gcp_bucket_rsync.yml@v1
+      with:
+        dist_directory: './public'
+      secrets:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        bucket_name: ${{ secrets.GCP_BUCKET_NAME }}
+        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
 ```
 
 ### Secrets
