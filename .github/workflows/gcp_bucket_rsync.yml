@@ -1,0 +1,56 @@
+on:
+  workflow_call:
+    inputs:
+      dist_directory:
+        required: true
+        type: string
+      before_run:
+        required: false
+        type: string
+        default: 'echo "No before run command specified :D"'
+      after_run:
+        required: false
+        type: string
+        default: 'echo "No after run command specified :D"'
+    secrets:
+      project_id:
+        required: true
+        type: string
+      credentials_json:
+        required: true
+        type: string
+      bucket_name:
+        required: true
+        type: string
+jobs:
+  deploy:
+    permissions:
+      contents: read
+      packages: write
+      issues: write
+    name: Build and push to GCP bucket
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run before hooks
+        run: ${{ inputs.before_run }}
+        shell: bash
+        
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ secrets.project_id }}
+          credentials_json: ${{ secrets.credentials_json }}
+
+      - name: Configure GCP SDK 
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to GCP storage bucket
+        run: |
+          gsutil -m rsync -r ${{ inputs.dist_directory }} gs://${{ secrets.bucket_name }}
+
+      - name: Run after hooks
+        run: ${{ inputs.after_run }}
+        shell: bash
